@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import ugettext as _
-from guardian.admin import GuardedModelAdmin
+# from guardian.admin import GuardedModelAdmin
 
 from userena.models import UserenaSignup
 from userena import settings as userena_settings
@@ -11,7 +11,7 @@ class UserenaSignupInline(admin.StackedInline):
     model = UserenaSignup
     max_num = 1
 
-class UserenaAdmin(UserAdmin, GuardedModelAdmin):
+class UserenaAdmin(UserAdmin):  # , GuardedModelAdmin):
     inlines = [UserenaSignupInline, ]
     list_display = ('username', 'email', 'first_name', 'last_name',
                     'is_staff', 'is_active', 'date_joined')
@@ -27,4 +27,4 @@ if userena_settings.USERENA_REGISTER_USER:
     admin.site.register(get_user_model(), UserenaAdmin)
     
 if userena_settings.USERENA_REGISTER_PROFILE:    
-    admin.site.register(get_profile_model(), GuardedModelAdmin)
+    admin.site.register(get_profile_model(), admin.ModelAdmin)  # GuardedModelAdmin)

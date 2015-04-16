@@ -11,7 +11,7 @@ except IOError:
         "``long_description`` (%s)\n" % readme_file)
     sys.exit(1)
 
-install_requires = ['easy_thumbnails', 'django-guardian', 'html2text']
+install_requires = ['easy_thumbnails', 'html2text']
 try:
     from collections import OrderedDict
 except ImportError:

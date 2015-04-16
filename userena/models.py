@@ -7,7 +7,7 @@ from django.template.loader import render_to_string
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 from easy_thumbnails.fields import ThumbnailerImageField
-from guardian.shortcuts import get_perms
+# from guardian.shortcuts import get_perms
 from userena import settings as userena_settings
 from userena.managers import UserenaManager, UserenaBaseProfileManager
 from userena.utils import get_gravatar, generate_sha1, get_protocol, \
@@ -389,7 +389,8 @@ class UserenaBaseProfile(models.Model):
             return True
 
         # Checks done by guardian for owner and admins.
-        elif 'view_profile' in get_perms(user, self):
+        # elif 'view_profile' in get_perms(user, self):
+        elif user.is_superuser or user == self.user:
             return True
 
         # Fallback to closed profile.
