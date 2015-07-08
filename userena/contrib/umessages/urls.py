@@ -15,7 +15,7 @@ urlpatterns = patterns('',
         messages_views.message_compose,
         name='userena_umessages_reply'),
 
-    url(r'^view/(?P<username>[\@\.\w-]+)/$',
+    url(r'^view/(?P<username>[\@ \.\w-]+)/$',
         login_required(messages_views.MessageDetailListView.as_view()),
         name='userena_umessages_detail'),
 
