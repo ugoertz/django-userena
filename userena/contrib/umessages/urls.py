@@ -7,7 +7,7 @@ urlpatterns = patterns('',
         messages_views.message_compose,
         name='userena_umessages_compose'),
 
-    url(r'^compose/(?P<recipients>[\@\+\.\w-]+)/$',
+    url(r'^compose/(?P<recipients>[\@ \+\.\w-]+)/$',
         messages_views.message_compose,
         name='userena_umessages_compose_to'),
 
