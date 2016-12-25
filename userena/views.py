@@ -1,6 +1,7 @@
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout, REDIRECT_FIELD_NAME
+from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.views import logout as Signout
 from django.views.generic import TemplateView
@@ -14,8 +15,7 @@ from userena.forms import (SignupForm, SignupFormOnlyEmail, AuthenticationForm,
                            ChangeEmailForm, EditProfileForm)
 from userena.models import UserenaSignup
 from userena.decorators import secure_required
-from userena.utils import (signin_redirect, get_profile_model, get_user_model,
-                           get_user_profile)
+from userena.utils import signin_redirect, get_profile_model, get_user_profile
 from userena import signals as userena_signals
 from userena import settings as userena_settings
 
@@ -455,7 +455,8 @@ def signin(request, auth_form=AuthenticationForm,
                 userena_signals.account_signin.send(sender=None, user=user)
                 # Whereto now?
                 redirect_to = redirect_signin_function(
-                    request.REQUEST.get(redirect_field_name), user)
+                    request.GET.get(redirect_field_name,
+                                    request.POST.get(redirect_field_name)), user)
                 return HttpResponseRedirect(redirect_to)
             else:
                 return redirect(reverse('userena_disabled',
@@ -464,7 +465,8 @@ def signin(request, auth_form=AuthenticationForm,
     if not extra_context: extra_context = dict()
     extra_context.update({
         'form': form,
-        'next': request.REQUEST.get(redirect_field_name),
+        'next': request.GET.get(redirect_field_name,
+                                request.POST.get(redirect_field_name)),
     })
     return ExtraContextTemplateView.as_view(template_name=template_name,
                                             extra_context=extra_context)(request)

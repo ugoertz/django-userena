@@ -1,28 +1,23 @@
 from django.conf import settings
-
-from django.utils.six import text_type
-try:
-    from django.utils.six.moves.urllib.parse import urlencode
-except ImportError:
-    from six.moves.urllib.parse import urlencode
 from django.utils.encoding import smart_bytes
+from django.utils.functional import allow_lazy
+from django.utils.http import urlencode
+from django.utils.six import text_type
+from django.utils.text import Truncator
 
 from userena import settings as userena_settings
 from userena.compat import SiteProfileNotAvailable, get_model
-from userena.compat import sha_constructor, md5_constructor
 
-import urllib, random, datetime
+from hashlib import sha1, md5
+import random, datetime
+import warnings
 
-try:
-    from django.utils.text import truncate_words
-except ImportError:
-    # Django >=1.5
-    from django.utils.text import Truncator
-    from django.utils.functional import allow_lazy
-    def truncate_words(s, num, end_text='...'):
-        truncate = end_text and ' %s' % end_text or ''
-        return Truncator(s).words(num, truncate=truncate)
-    truncate_words = allow_lazy(truncate_words, text_type)
+
+def truncate_words(s, num, end_text='...'):
+    truncate = end_text and ' %s' % end_text or ''
+    return Truncator(s).words(num, truncate=truncate)
+truncate_words = allow_lazy(truncate_words, text_type)
+
 
 def get_gravatar(email, size=80, default='identicon'):
     """ Get's a Gravatar for a email address.
@@ -62,7 +57,7 @@ def get_gravatar(email, size=80, default='identicon'):
 
     gravatar_url = '%(base_url)s%(gravatar_id)s?' % \
             {'base_url': base_url,
-             'gravatar_id': md5_constructor(email.lower().encode('utf-8')).hexdigest()}
+             'gravatar_id': md5(email.lower().encode('utf-8')).hexdigest()}
 
     gravatar_url += urlencode({
         's': str(size),
@@ -114,10 +109,10 @@ def generate_sha1(string, salt=None):
         string = str(string)
 
     if not salt:
-        salt = sha_constructor(str(random.random()).encode('utf-8')).hexdigest()[:5]
+        salt = sha1(str(random.random()).encode('utf-8')).hexdigest()[:5]
 
     salted_bytes = (smart_bytes(salt) + smart_bytes(string))
-    hash_ = sha_constructor(salted_bytes).hexdigest()
+    hash_ = sha1(salted_bytes).hexdigest()
 
     return salt, hash_
 
@@ -147,7 +142,7 @@ def get_user_profile(user):
     try:
         profile = user.get_profile()
     except AttributeError:
-        related_name = profile_model._meta.get_field_by_name('user')[0]\
+        related_name = profile_model._meta.get_field('user')\
                                     .related_query_name()
         profile = getattr(user, related_name, None)
     except profile_model.DoesNotExist:
@@ -192,8 +187,10 @@ def get_datetime_now():
 
 user_model_label = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
-try:
+
+def get_user_model():
+    warnings.warn("Use Django's django.contrib.auth.get_user_model directly. "
+                  "This function will be removed in future versions of "
+                  "django-userena.", DeprecationWarning)
     from django.contrib.auth import get_user_model
-except ImportError:
-    def get_user_model():
-        return get_model(*user_model_label.rsplit('.', 1))
+    return get_user_model()

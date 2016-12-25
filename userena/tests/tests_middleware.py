@@ -1,10 +1,11 @@
+from django.contrib.auth import get_user_model
 from django.http import HttpRequest
 from django.test import TestCase
 
 from userena.tests.profiles.models import Profile
 from userena.middleware import UserenaLocaleMiddleware
 from userena import settings as userena_settings
-from userena.utils import get_user_model, get_user_profile, get_profile_model
+from userena.utils import get_user_profile, get_profile_model
 
 User = get_user_model()
 
@@ -15,7 +16,7 @@ def has_profile(user):
     try:
         profile = user.get_profile()
     except AttributeError:
-        related_name = profile_model._meta.get_field_by_name('user')[0]\
+        related_name = profile_model._meta.get_field('user')\
                                     .related_query_name()
         profile = getattr(user, related_name, None)
     except profile_model.DoesNotExist:
@@ -55,11 +56,11 @@ class UserenaLocaleMiddlewareTests(TestCase):
             req = self._get_request_with_user(user)
 
             # Check that the user has this preference
-            self.failUnlessEqual(profile.language, lang)
+            self.assertEqual(profile.language, lang)
 
             # Request should have a ``LANGUAGE_CODE`` with dutch
             UserenaLocaleMiddleware().process_request(req)
-            self.failUnlessEqual(req.LANGUAGE_CODE, lang)
+            self.assertEqual(req.LANGUAGE_CODE, lang)
 
     def test_without_profile(self):
         """ Middleware should do nothing when a user has no profile """
@@ -73,7 +74,7 @@ class UserenaLocaleMiddlewareTests(TestCase):
         req = self._get_request_with_user(user)
         UserenaLocaleMiddleware().process_request(req)
 
-        self.failIf(hasattr(req, 'LANGUAGE_CODE'))
+        self.assertFalse(hasattr(req, 'LANGUAGE_CODE'))
 
     def test_without_language_field(self):
         """ Middleware should do nothing if the profile has no language field """
@@ -84,4 +85,4 @@ class UserenaLocaleMiddlewareTests(TestCase):
 
         # Middleware should do nothing
         UserenaLocaleMiddleware().process_request(req)
-        self.failIf(hasattr(req, 'LANGUAGE_CODE'))
+        self.assertFalse(hasattr(req, 'LANGUAGE_CODE'))

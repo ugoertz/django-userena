@@ -35,11 +35,6 @@ if django.VERSION < (1, 6, 0):  # pragma: no cover
     # Django<1.6.0 uses uidb36, we construct urlpattern depending on this
     password_reset_uid_kwarg = 'uidb36'
 
-if django.VERSION < (1, 5, 0):
-    from django.utils.encoding import smart_unicode as smart_text
-else:
-    from django.utils.encoding import smart_text
-
 
 # SiteProfileNotAvailable compatibility
 if django.VERSION < (1, 7, 0):  # pragma: no cover
@@ -48,14 +43,20 @@ else:  # pragma: no cover
     class SiteProfileNotAvailable(Exception):
         pass
 
-# old fallback to django hashcompat
-try:
-    from hashlib import sha1 as sha_constructor, md5 as md5_constructor
-except ImportError:  # pragma: no cover
-    from django.utils.hashcompat import sha_constructor, md5_constructor
 
 if django.VERSION < (1, 7, 0):
     from django.db.models import get_model
 else:
     from django.apps import apps
     get_model = apps.get_model
+
+
+# optparse/argparse compatibility helper for simple cases (long options only)
+# for an example useage see userena/management/commands/check_permissions.py
+if django.VERSION < (1, 8):
+    from optparse import make_option
+    def make_options(options):
+        return list(make_option(opt, **attrs) for opt, attrs in options)
+else:
+    def make_options(options):
+        return ()

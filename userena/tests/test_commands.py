@@ -3,15 +3,15 @@ from __future__ import unicode_literals
 
 from django.test import TestCase
 from django.core.management import call_command
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 
 from userena.models import UserenaSignup
 from userena.managers import ASSIGNED_PERMISSIONS
 from userena import settings as userena_settings
-from userena.utils import get_profile_model, get_user_model
+from userena.utils import get_profile_model
 
-from guardian.shortcuts import remove_perm
 from guardian.models import UserObjectPermission
 
 import datetime
@@ -40,7 +40,7 @@ class CleanExpiredTests(TestCase):
         # Clean it.
         call_command('clean_expired')
 
-        self.failUnlessEqual(User.objects.filter(username=self.user_info['username']).count(), 0)
+        self.assertEqual(User.objects.filter(username=self.user_info['username']).count(), 0)
 
 class CheckPermissionTests(TestCase):
     user_info = {'username': 'alice',
@@ -54,7 +54,7 @@ class CheckPermissionTests(TestCase):
 
         # Remove all permissions
         UserObjectPermission.objects.filter(user=user).delete()
-        self.failUnlessEqual(UserObjectPermission.objects.filter(user=user).count(),
+        self.assertEqual(UserObjectPermission.objects.filter(user=user).count(),
                              0)
 
         # Check it
